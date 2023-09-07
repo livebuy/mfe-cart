@@ -1,25 +1,50 @@
-# .github/release.yaml
+# Builds & Deploys the project to our Amazon S3 Prod bucket
+# which is exposed via CloudFront to creators-cart.livebuy.io
 
-changelog:
-  exclude:
-    labels:
-      - ignore-for-release
-    authors:
-      - dependabot
-  categories:
-    - title: 💥 Breaking Change
-      labels:
-        - breaking-change
-    - title: 🚀 Enhancement
-      labels:
-        - enhancement
-        - feature
-    - title: 🐛 Bug Fix
-      labels:
-        - bug
-    - title: 📝 Documentation
-      labels:
-        - documentation
-    - title: Other Changes
-      labels:
-        - "*"
+name: creators-cart.livebuy.io
+
+on:
+  release:
+    types: [released]
+
+env:
+  NODE_VERSION: 18
+  AWS_S3_BUCKET: "lb-creators-cart"
+  AWS_CF_DISTRIBUTION_ID: "E2B9VVDLW8SPUF"
+  AWS_REGION: "eu-central-1"
+
+jobs:
+  livebuy-popup:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - run: pnpm install
+
+      - run: pnpm build
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: sync build to s3 bucket
+        run: |
+          aws s3 sync ./packages/cart/build s3://${{ env.AWS_S3_BUCKET }} --follow-symlinks --delete --no-progres
+
+      - name: set cache-control meta-data for index.html on S3
+        run: |
+          aws s3 cp ./packages/cart/build/index.html s3://${{ env.AWS_S3_BUCKET }}/index.html --cache-control "no-store, max-age=0"
+
+      - name: invalidate cloudfront distribution
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ env.AWS_CF_DISTRIBUTION_ID }} --paths '/*'
