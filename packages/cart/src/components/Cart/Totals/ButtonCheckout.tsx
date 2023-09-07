@@ -39,7 +39,6 @@ export const ButtonCheckout: FC = () => {
                 "button-base bg-primary text-contrast block rounded-md py-3 px-3"
               }
               label={label}
-              target={isEmbedded() ? "_top" : undefined}
             />
           ) : (
             <ButtonCheckoutDisabled />

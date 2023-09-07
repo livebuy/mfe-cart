@@ -87,7 +87,6 @@ export const Summary: FC<Props> = ({ listTypes }) => {
             data-test-id="return-url"
             href={settings.returnUrl}
             className="link-base text-xs font-bold"
-            target={isEmbedded() ? "_top" : undefined}
           >
             &lt; {t("general.returnUrlLabel")}
           </a>
