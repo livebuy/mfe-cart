@@ -10,12 +10,16 @@ import { FC } from "react"
 import { useTranslation } from "react-i18next"
 
 import { ButtonCheckoutDisabled } from "#components/atoms/ButtonCheckoutDisabled"
+import { useSettings } from "#components/SettingsProvider"
 import { isEmbedded } from "#utils/isEmbedded"
+
+const CHECKOUT_URL = import.meta.env.PUBLIC_CHECKOUT_URL
 
 export const ButtonCheckout: FC = () => {
   const { t } = useTranslation()
   const label = t("general.gotToCheckoutCta")
   const { order } = useOrderContainer()
+  const { settings } = useSettings()
 
   return (
     <>
@@ -39,6 +43,9 @@ export const ButtonCheckout: FC = () => {
                 "button-base bg-primary text-contrast block rounded-md py-3 px-3"
               }
               label={label}
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              href={`${CHECKOUT_URL}/${order?.id}?accessToken=${settings.accessToken}`}
             />
           ) : (
             <ButtonCheckoutDisabled />
