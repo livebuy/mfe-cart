@@ -12,6 +12,7 @@ env:
   AWS_S3_BUCKET: "lb-creators-cart"
   AWS_CF_DISTRIBUTION_ID: "E2B9VVDLW8SPUF"
   AWS_REGION: "eu-central-1"
+  PUBLIC_CHECKOUT_URL: "https://creators-checkout.livebuy.io"
 
 jobs:
   livebuy-popup:
@@ -21,7 +22,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
-          version: 7
+          version: 8
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -29,6 +30,8 @@ jobs:
       - run: pnpm install
 
       - run: pnpm build
+        env:
+          PUBLIC_CHECKOUT_URL: ${{ env.PUBLIC_CHECKOUT_URL }}
 
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1
